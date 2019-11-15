@@ -10,20 +10,16 @@ import (
 )
 
 type ChatServer struct {
-	clients          map[string]*websocket.Conn
-	addClientChan    chan *websocket.Conn
-	removeClientChan chan *websocket.Conn
-	broadcastChan    chan shared.Message
-	formatter        PassThroughFormatter
+	clients   map[string]*websocket.Conn
+	chatroom  chan shared.Message
+	formatter PassThroughFormatter
 }
 
 func NewChatServer(formatter PassThroughFormatter) *ChatServer {
 	return &ChatServer{
-		clients:          make(map[string]*websocket.Conn),
-		addClientChan:    make(chan *websocket.Conn),
-		removeClientChan: make(chan *websocket.Conn),
-		broadcastChan:    make(chan shared.Message),
-		formatter:        formatter,
+		clients:   make(map[string]*websocket.Conn),
+		chatroom:  make(chan shared.Message),
+		formatter: formatter,
 	}
 }
 
@@ -43,12 +39,8 @@ func (server *ChatServer) Start(port string) error {
 	return webserver.ListenAndServe()
 }
 
-func (server *ChatServer) connectClient(connection *websocket.Conn) {
-	server.maintainConnection(connection)
-}
-
 func (server *ChatServer) maintainConnection(connection *websocket.Conn) {
-	server.addClientChan <- connection
+	server.addClient(connection)
 	defer server.removeClient(connection)
 
 	for {
@@ -59,21 +51,15 @@ func (server *ChatServer) maintainConnection(connection *websocket.Conn) {
 			return
 		}
 		msg = server.formatter.Modify(msg)
-		server.broadcastChan <- msg
+		server.chatroom <- msg
 	}
 }
 
 func (server *ChatServer) distribute() {
 	fmt.Println("ready to distribute messages...")
 	for {
-		select {
-		case conn := <-server.addClientChan:
-			server.addClient(conn)
-		case conn := <-server.removeClientChan:
-			server.removeClient(conn)
-		case m := <-server.broadcastChan:
-			server.broadcastMessage(m)
-		}
+		msg := <-server.chatroom
+		server.sendToAllClients(msg)
 	}
 }
 
@@ -85,11 +71,11 @@ func (server *ChatServer) removeClient(conn *websocket.Conn) {
 	delete(server.clients, conn.RemoteAddr().String())
 }
 
-func (server *ChatServer) broadcastMessage(msg shared.Message) {
-	for _, conn := range server.clients {
+func (server *ChatServer) sendToAllClients(msg shared.Message) {
+	for client, conn := range server.clients {
 		err := websocket.JSON.Send(conn, msg)
 		if err != nil {
-			fmt.Printf("Error broadcasting message: %s\n", err)
+			fmt.Printf("Error broadcasting message to client %s: %s\n", client, err)
 			fmt.Printf("Removing client from the server\n")
 			server.removeClient(conn)
 		}
