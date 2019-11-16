@@ -16,17 +16,21 @@ var (
 func main() {
 	flag.Parse()
 
-	msgCreator := MyInputFormatter{
-		sender: *name,
-	}
-	msgFormatter := MyOutputFormatter{}
-	client := client.NewChatClient(msgCreator, msgFormatter)
+	consoleOutput := ConsoleReceiver{}
 
+	consoleInput := ConsoleSender{
+		scanner:          NewConsoleChatScanner(),
+		messageFormatter: NewMessageFormatter(*name),
+	}
+
+	client := client.NewChatClient()
 	err := client.Connect(*ip, *port)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer client.Disconnect()
 
-	client.JoinChat()
+	client.ReceiveChatMessagenOn(consoleOutput)
+	consoleInput.SendChatMessagesTo(&client)
+
 }
