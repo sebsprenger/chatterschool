@@ -9,8 +9,10 @@ The client provides two interfaces to modify messages 1) before they are being s
 
     go get github.com/sebsprenger/chatterschool/cmd/server
     go get github.com/sebsprenger/chatterschool/cmd/client
+    go get github.com/sebsprenger/chatterschool/cmd/web
 
 ## Start
 
     server [-port 9001]
     client [-port 9001] [-name Kitten2000]
+    web    [-port 8080]

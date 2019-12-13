@@ -1,0 +1,12 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+@font-face { 
+    font-family: "College"; 
+    src: url("/static/collegiateHeavyOutline.ttf"); 
+    }
+
+.message-line {
+    margin: 3px
+}
