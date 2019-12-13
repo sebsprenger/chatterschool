@@ -1,0 +1,31 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+@font-face { 
+    font-family: "College"; 
+    src: url("/static/collegiateHeavyOutline.ttf"); 
+    }
+
+.college {
+    font-family: College;
+    font-size: 80px;
+    font-weight: normal;
+}
+
+.inbox {
+    min-height: 250px;
+    max-width: 800px;
+    margin-top: 10px;
+    background-color: aliceblue;
+    border: 1px solid #9b9b9b;
+}
+
+.message {
+    background-color: aliceblue;
+    border: 1px solid #9b9b9b;
+}
+
+.message-line {
+    margin: 3px
+}
